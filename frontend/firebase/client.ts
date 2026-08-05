@@ -11,6 +11,7 @@ import { getAnalytics } from "firebase/analytics";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyB-fi8NUENz0HuALvVsad0GVrP0lmClyBU",
+
   authDomain: "prepwise-991e9.firebaseapp.com",
   projectId: "prepwise-991e9",
   storageBucket: "prepwise-991e9.firebasestorage.app",
