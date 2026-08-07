@@ -1,14 +1,12 @@
 import React from "react";
-import { Hourglass } from "lucide-react";
+import HourglassLoader from "@/components/HourglassLoader";
 
-const Spinner = ({ label = "Loading...", size = 36 }: { label?: string; size?: number }) => (
-  <div className="flex flex-col items-center justify-center gap-3">
-    <Hourglass
-      size={size}
-      className="text-primary-200 animate-hourglass-flip"
-      aria-hidden="true"
-    />
-    {label && <p className="opacity-70 text-sm">{label}</p>}
+const Spinner = ({ label = "Loading...", size = 64 }: { label?: string; size?: number }) => (
+  <div className="flex flex-col items-center justify-center gap-4 min-h-[50vh] w-full">
+    <div className="animate-hourglass-flip text-primary-200">
+      <HourglassLoader size={size} />
+    </div>
+    {label && <p className="opacity-70 text-base">{label}</p>}
   </div>
 );
 

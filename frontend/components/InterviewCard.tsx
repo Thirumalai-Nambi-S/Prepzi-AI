@@ -6,12 +6,18 @@ import { Button } from '@/components/ui/button'
 import DisplayTechIcons from '@/components/DisplayTechIcons'
 
 const InterviewCard = ({ id, role, type, techstack, createdAt, coverImage, feedback }: InterviewCardProps) => {
-    const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
+    const normalizedType = /mix/i.test(type)
+        ? 'Mixed'
+        : /behav/i.test(type)
+        ? 'Behavioral'
+        : /tech/i.test(type)
+        ? 'Technical'
+        : 'Mixed';
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY')
 
     return (
-        <div className='card-border shrink-0 w-[360px] max-sm:w-full min-h-96'>
-            <div className='card-interview'>
+        <div className='card-border card-border-glow shrink-0 w-[360px] max-sm:w-full h-full min-h-96 relative transition-transform duration-300 hover:-translate-y-1 hover:z-50'>
+            <div className='card-interview h-full flex flex-col justify-between'>
                 <div>
                     <div className='absolute top-0 right-0 w-fit px-4 py-2 rounded-bl-lg bg-light-600'>
                         <p className='badge-text'>{normalizedType}</p>
@@ -19,7 +25,7 @@ const InterviewCard = ({ id, role, type, techstack, createdAt, coverImage, feedb
 
                     <img src={coverImage || getRandomInterviewCover()} alt="cover image" width={90} height={90} className='rounded-full object-fit size-[90px]' />
 
-                    <h3 className='mt-5 capitalize'>
+                    <h3 className='mt-5 capitalize line-clamp-2 min-h-[2lh]'>
                         {role} Interview
                     </h3>
 

@@ -22,8 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import link from "next/link";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiSignIn, apiSignUp } from "@/lib/api";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -101,7 +100,7 @@ const AuthForm = ({type}: {type: FormType}) => {
 
             
             toast.success("Signed in successfully!");
-            router.push('/');
+            router.push('/dashboard');
         }
 
     } catch (error) {
@@ -119,11 +118,11 @@ const AuthForm = ({type}: {type: FormType}) => {
         <ThemeToggle />
       </div>
       <div className="flex flex-col gap-6 card py-14 px-10">
-        <div className="flex flex-row gap-2 justify-center items-center">
+        <Link href="/" className="flex flex-row gap-2 justify-center items-center hover:opacity-80 transition-opacity">
           <img src="/logo.png" alt="Prepzi-AI logo" height={38} width={38} className="rounded-full" />
 
           <h2 className="text-primary-200">Prepzi-AI</h2>
-        </div>
+        </Link>
 
         <h3>Practice job interview with AI</h3>
       

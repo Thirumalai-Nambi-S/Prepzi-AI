@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { useUser } from "@/lib/UserContext";
 import Spinner from "@/components/Spinner";
+import Reveal from "@/components/Reveal";
 
 const Page = () => {
   const user = useUser();
@@ -93,53 +94,65 @@ const Page = () => {
 
   return (
     <>
-      <section className="card-cta">
-        <div className="flex flex-col gap-6 max-w-lg">
-          <h2>Get Interview-Ready with AI-Powered Practice & Feedback</h2>
-          <p className="text-lg">Practice on real interview questions & get instant feedback</p>
-          <Button asChild className="btn-primary max-sm:w-full">
-            <Link href="/interview">Create an Interview</Link>
-          </Button>
-        </div>
-        <img src="/robot.png" alt="robo-dude" width={400} height={400} className="max-sm:hidden" />
-      </section>
+      <Reveal>
+        <section className="card-cta">
+          <div className="flex flex-col gap-6 max-w-lg">
+            <h2>Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋</h2>
+            <p className="text-lg opacity-90">Practice on real interview questions & get instant feedback</p>
+            <Button asChild className="btn-primary max-sm:w-full">
+              <Link href="/interview">Create an Interview</Link>
+            </Button>
+          </div>
+          <img src="/robot.png" alt="robo-dude" width={400} height={400} className="max-sm:hidden animate-float" />
+        </section>
+      </Reveal>
 
       <section className="flex flex-col gap-6 mt-8">
-        <h2>How Your Interview Works</h2>
-        <p className="opacity-80 -mt-2">
-          Every interview you create runs through 3 rounds, just like a real hiring process.
-        </p>
+        <Reveal>
+          <div className="flex flex-col gap-1">
+            <h2>How Your Interview Works</h2>
+            <p className="opacity-80">
+              Every interview you create runs through 3 rounds, just like a real hiring process.
+            </p>
+          </div>
+        </Reveal>
         <div className="interviews-section">
-          <div className="card-border w-[360px] max-sm:w-full">
-            <div className="card p-6 flex flex-col gap-3">
-              <p className="badge-text text-primary-200">Round 1</p>
-              <h3>Quantitative Aptitude</h3>
-              <p className="opacity-80">
-                10 timed multiple-choice questions - arithmetic, logical reasoning, and data interpretation. 60
-                seconds per question, auto-scored.
-              </p>
+          <Reveal delay={0} className="h-full">
+            <div className="surface-card w-[360px] max-sm:w-full h-full">
+              <div className="card p-6 flex flex-col gap-3 h-full">
+                <p className="badge-text text-primary-200">Round 1</p>
+                <h3>Quantitative Aptitude</h3>
+                <p className="opacity-80">
+                  10 timed multiple-choice questions - arithmetic, logical reasoning, and data interpretation. 60
+                  seconds per question, auto-scored.
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="card-border w-[360px] max-sm:w-full">
-            <div className="card p-6 flex flex-col gap-3">
-              <p className="badge-text text-primary-200">Round 2</p>
-              <h3>Technical Interview</h3>
-              <p className="opacity-80">
-                A focused, professional-tone voice interview on your role and tech stack, with an AI interviewer
-                that reacts to your answers in real time.
-              </p>
+          </Reveal>
+          <Reveal delay={100} className="h-full">
+            <div className="surface-card w-[360px] max-sm:w-full h-full">
+              <div className="card p-6 flex flex-col gap-3 h-full">
+                <p className="badge-text text-primary-200">Round 2</p>
+                <h3>Technical Interview</h3>
+                <p className="opacity-80">
+                  A focused, professional-tone voice interview on your role and tech stack, with an AI interviewer
+                  that reacts to your answers in real time.
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="card-border w-[360px] max-sm:w-full">
-            <div className="card p-6 flex flex-col gap-3">
-              <p className="badge-text text-primary-200">Round 3</p>
-              <h3>Behavioral Interview</h3>
-              <p className="opacity-80">
-                A warmer voice conversation with an HR-style interviewer covering past experience, soft skills, and
-                culture fit.
-              </p>
+          </Reveal>
+          <Reveal delay={200} className="h-full">
+            <div className="surface-card w-[360px] max-sm:w-full h-full">
+              <div className="card p-6 flex flex-col gap-3 h-full">
+                <p className="badge-text text-primary-200">Round 3</p>
+                <h3>Behavioral Interview</h3>
+                <p className="opacity-80">
+                  A warmer voice conversation with an HR-style interviewer covering past experience, self into, soft skills, and
+                  culture fit.
+                </p>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 

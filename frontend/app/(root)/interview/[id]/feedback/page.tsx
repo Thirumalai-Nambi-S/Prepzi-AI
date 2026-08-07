@@ -28,7 +28,7 @@ const Page = () => {
         setInterview(interview);
         setFeedback(feedback);
       } catch {
-        router.replace("/");
+        router.replace("/dashboard");
       } finally {
         setLoading(false);
       }
@@ -128,7 +128,7 @@ const Page = () => {
 
       <div className="flex flex-row gap-4">
         <Button asChild className="btn-secondary flex-1">
-          <Link href="/">Back to Dashboard</Link>
+          <Link href="/dashboard">Back to Dashboard</Link>
         </Button>
         <Button asChild className="btn-primary flex-1">
           <Link href={`/interview/${id}`}>Retake Interview</Link>

@@ -79,8 +79,12 @@ const RoundedInterview = ({ interview, userName, userId }: RoundedInterviewProps
           return (
             <div
               key={r}
-              className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                isActive ? "bg-primary-200 text-dark-100" : isDone ? "bg-success-100/20 text-success-100" : "bg-dark-200 text-light-100/60"
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ease-out ${
+                isActive
+                  ? "bg-primary-200 text-dark-100 scale-105 shadow-md shadow-primary-200/30"
+                  : isDone
+                  ? "bg-success-100/20 text-success-100"
+                  : "bg-dark-200 text-light-100/60"
               }`}
             >
               {meta.label}
@@ -90,43 +94,45 @@ const RoundedInterview = ({ interview, userName, userId }: RoundedInterviewProps
         })}
       </div>
 
-      {stage === "aptitude" && (
-        <AptitudeRound
-          questions={rounds.aptitude.questions}
-          timePerQuestionSeconds={rounds.aptitude.timePerQuestionSeconds || 60}
-          onComplete={handleAptitudeComplete}
-        />
-      )}
+      <div key={stage} className="animate-fadeIn">
+        {stage === "aptitude" && (
+          <AptitudeRound
+            questions={rounds.aptitude.questions}
+            timePerQuestionSeconds={rounds.aptitude.timePerQuestionSeconds || 60}
+            onComplete={handleAptitudeComplete}
+          />
+        )}
 
-      {stage === "technical" && (
-        <Agent
-          userName={userName}
-          userId={userId}
-          interviewId={interview.id}
-          type="interview"
-          questions={rounds.technical.questions}
-          personaMode="technical"
-          onRoundComplete={handleTechnicalComplete}
-        />
-      )}
+        {stage === "technical" && (
+          <Agent
+            userName={userName}
+            userId={userId}
+            interviewId={interview.id}
+            type="interview"
+            questions={rounds.technical.questions}
+            personaMode="technical"
+            onRoundComplete={handleTechnicalComplete}
+          />
+        )}
 
-      {stage === "behavioral" && (
-        <Agent
-          userName={userName}
-          userId={userId}
-          interviewId={interview.id}
-          type="interview"
-          questions={rounds.behavioral.questions}
-          personaMode="behavioral"
-          onRoundComplete={handleBehavioralComplete}
-        />
-      )}
+        {stage === "behavioral" && (
+          <Agent
+            userName={userName}
+            userId={userId}
+            interviewId={interview.id}
+            type="interview"
+            questions={rounds.behavioral.questions}
+            personaMode="behavioral"
+            onRoundComplete={handleBehavioralComplete}
+          />
+        )}
 
-      {stage === "submitting" && (
-        <div className="flex items-center justify-center min-h-[30vh]">
-          <p>Generating your combined feedback across all 3 rounds...</p>
-        </div>
-      )}
+        {stage === "submitting" && (
+          <div className="flex items-center justify-center min-h-[30vh]">
+            <p>Generating your combined feedback across all 3 rounds...</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -6,6 +6,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Registered as an animatable angle so the border-chase light can rotate
+   smoothly via a CSS transition-free @keyframes animation. Unsupported
+   browsers just render the gradient statically (still looks fine). */
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @theme {
   --color-success-100: #49de50;
   --color-success-200: #42c748;
@@ -255,10 +264,10 @@
     @apply flex min-h-14 w-full items-center justify-center gap-1.5 rounded-md;
   }
   .btn-primary {
-    @apply w-fit !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !font-bold px-5 cursor-pointer min-h-10;
+    @apply w-fit !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !font-bold px-5 cursor-pointer min-h-10 transition-transform duration-200 ease-out hover:scale-[1.03] active:scale-[0.97];
   }
   .btn-secondary {
-    @apply w-fit !bg-dark-200 !text-primary-200 hover:!bg-dark-200/80 !rounded-full !font-bold px-5 cursor-pointer min-h-10;
+    @apply w-fit !bg-dark-200 !text-primary-200 hover:!bg-dark-200/80 !rounded-full !font-bold px-5 cursor-pointer min-h-10 transition-transform duration-200 ease-out hover:scale-[1.03] active:scale-[0.97];
   }
 
   .btn-upload {
@@ -266,7 +275,45 @@
   }
 
   .card-border {
-    @apply border-gradient p-0.5 rounded-2xl w-fit;
+    @apply border-gradient p-0.5 rounded-2xl w-fit shadow-md shadow-black/10 transition-shadow duration-300 hover:shadow-lg hover:shadow-black/20;
+  }
+
+  /* A thin line of light chasing smoothly around the card's border - layered
+     on top of card-border via a masked conic-gradient ::before, so the base
+     gradient border underneath is untouched. Used on interview cards only,
+     to keep it a deliberate accent rather than noise on every card. */
+  .card-border-glow {
+    @apply relative isolate;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(
+        from var(--border-angle),
+        transparent 0%,
+        var(--app-primary-200) 4%,
+        transparent 11%,
+        transparent 50%,
+        var(--app-primary-200) 54%,
+        transparent 61%,
+        transparent 100%
+      );
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: border-chase 3.5s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+  }
+
+  @keyframes border-chase {
+    to {
+      --border-angle: 360deg;
+    }
   }
 
   .card {
@@ -285,7 +332,7 @@
     }
 
     .btn {
-      @apply !w-full !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer;
+      @apply !w-full !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.015] active:scale-[0.98];
     }
   }
 
@@ -301,10 +348,10 @@
     }
 
     .avatar {
-      @apply z-10 flex items-center justify-center blue-gradient rounded-full size-[120px] relative;
+      @apply z-10 flex items-center justify-center blue-gradient rounded-full size-[120px] relative animate-float;
 
       .animate-speak {
-        @apply absolute inline-flex size-5/6 animate-ping rounded-full bg-primary-200 opacity-75;
+        @apply absolute inline-flex size-5/6 animate-speak-glow rounded-full bg-primary-200;
       }
     }
 
@@ -321,10 +368,10 @@
     @apply border-gradient p-0.5 rounded-2xl w-full mt-10;
 
     .transcript {
-      @apply dark-gradient rounded-2xl  min-h-12 px-5 py-3 flex items-center justify-center ;
+      @apply dark-gradient rounded-2xl min-h-24 px-5 py-4 flex flex-col gap-3 items-center justify-center;
 
       p {
-        @apply text-lg text-center text-white;
+        @apply text-lg text-center text-light-100;
       }
     }
   }
@@ -338,15 +385,15 @@
   }
 
   .auth-layout {
-    @apply flex items-center justify-center mx-auto max-w-7xl min-h-screen max-sm:px-4 max-sm:py-8;
+    @apply flex flex-col items-center justify-center mx-auto max-w-7xl min-h-screen max-sm:px-4 max-sm:py-8;
   }
 
   .root-layout {
-    @apply flex mx-auto max-w-7xl flex-col gap-12 my-12 px-16 max-sm:px-4 max-sm:my-8;
+    @apply flex mx-auto max-w-7xl flex-col gap-12 my-8 px-16 max-sm:px-4 max-sm:my-6;
   }
 
   .card-cta {
-    @apply flex flex-row blue-gradient-dark rounded-3xl px-16 py-6 items-center justify-between max-sm:px-4;
+    @apply flex flex-row blue-gradient-dark rounded-3xl px-16 py-6 items-center justify-between shadow-lg shadow-black/10 max-sm:px-6 max-sm:py-8 max-sm:flex-col max-sm:text-center max-sm:gap-6;
   }
 
   .interviews-section {
@@ -354,11 +401,21 @@
   }
 
   .interviews-row {
-    @apply flex flex-nowrap gap-4 w-full items-stretch overflow-x-auto pb-2;
+    @apply flex flex-nowrap gap-4 w-full items-stretch overflow-x-auto overflow-y-hidden pt-3 pb-2;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* old Edge/IE */
+
+    &::-webkit-scrollbar {
+      display: none; /* Chrome/Safari/new Edge */
+    }
 
     > * {
       @apply shrink-0;
     }
+  }
+
+  .surface-card {
+    @apply border-gradient p-0.5 rounded-2xl w-fit relative transition-transform duration-300 ease-out shadow-md shadow-black/10 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 hover:z-50;
   }
 
   .interview-text {
@@ -423,6 +480,61 @@
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-fadeInUp {
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Gentle up-down drift used on hero illustrations, avatars, and decorative
+   elements - a calm ambient motion rather than a jarring blink/flash. */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@utility animate-float {
+  animation: float 4.5s ease-in-out infinite;
+}
+
+@utility animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Smooth breathing glow for the "AI is speaking" indicator - replaces the
+   sharp animate-ping flash, which read as blinking. */
+@keyframes speak-glow {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+}
+
+@utility animate-speak-glow {
+  animation: speak-glow 2.2s ease-in-out infinite;
+}
+
 /* Sand-clock style loading icon: flips upside down, pauses, flips back -
    mimicking an hourglass being turned over once the sand runs out. */
 @utility animate-hourglass-flip {
@@ -443,15 +555,48 @@
   }
 }
 
-.interviews-row::-webkit-scrollbar {
-  height: 8px;
+/* Sand visibly draining from the top chamber into the bottom one, looped
+   on the same cadence as the flip so it reads as one continuous pour. */
+@keyframes sand-drain-top {
+  0% {
+    transform: scaleY(1);
+  }
+  85%,
+  100% {
+    transform: scaleY(0.05);
+  }
 }
 
-.interviews-row::-webkit-scrollbar-track {
-  background: transparent;
+@keyframes sand-drain-bottom {
+  0% {
+    transform: scaleY(0.05);
+  }
+  85%,
+  100% {
+    transform: scaleY(1);
+  }
 }
 
-.interviews-row::-webkit-scrollbar-thumb {
-  background: var(--app-border-from);
-  border-radius: 999px;
+@utility animate-sand-drain-top {
+  animation: sand-drain-top 2.2s ease-in infinite;
+}
+
+@utility animate-sand-drain-bottom {
+  animation: sand-drain-bottom 2.2s ease-in infinite;
+}
+
+@keyframes sand-fall {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(-1.5px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(1.5px);
+  }
+}
+
+@utility animate-sand-fall {
+  animation: sand-fall 0.45s ease-in-out infinite;
 }

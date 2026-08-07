@@ -89,7 +89,7 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
 
   const finishAndGoHome = () => {
     setCallStatus(CallStatus.FINISHED);
-    router.push("/");
+    router.push("/dashboard");
   };
 
   const runGenerateFlow = async () => {
@@ -252,7 +252,7 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
     }
 
     if (!interviewId || !userId || messagesRef.current.length === 0) {
-      router.push("/");
+      router.push("/dashboard");
       return;
     }
 
@@ -266,7 +266,7 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
       router.push(`/interview/${interviewId}/feedback`);
     } catch (e) {
       console.error("Error saving feedback", e);
-      router.push("/");
+      router.push("/dashboard");
     } finally {
       setStatusText("");
     }
@@ -302,7 +302,6 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
     }
   };
 
-  const latestMessage = messages[messages.length - 1]?.content;
   const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus === CallStatus.FINISHED;
   const interviewerLabel =
     personaMode === "technical" ? "Technical Interviewer" : personaMode === "behavioral" ? "HR Interviewer" : "AI Interviewer";
@@ -336,12 +335,31 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
       {messages.length > 0 && (
         <div className="transcript-border">
           <div className="transcript">
-            <p
-              key={latestMessage}
-              className={cn("transition-opacity duration-500 opacity-0", "animate-fadeIn opacity-100")}
-            >
-              {latestMessage}
-            </p>
+            {messages.slice(-2).map((m, i, arr) => {
+              const isLatest = i === arr.length - 1;
+              const isAI = m.role === "assistant" || m.role === "system";
+              return (
+                <div
+                  key={`${messages.length - arr.length + i}-${m.content}`}
+                  className={cn(
+                    "flex flex-col items-center gap-1 w-full transition-all duration-500",
+                    isLatest ? "opacity-100" : "opacity-45 scale-[0.97]"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "text-xs font-semibold uppercase tracking-wide",
+                      isAI ? "text-primary-200" : "text-success-100"
+                    )}
+                  >
+                    {isAI ? interviewerLabel : userName || "You"}
+                  </span>
+                  <p key={m.content} className="animate-fadeIn">
+                    {m.content}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

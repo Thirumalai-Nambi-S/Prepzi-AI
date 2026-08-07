@@ -4,6 +4,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiGetCurrentUser } from "@/lib/api";
 import Spinner from "@/components/Spinner";
+import Footer from "@/components/Footer";
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
@@ -12,7 +13,7 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     apiGetCurrentUser()
       .then(({ user }) => {
-        if (user) router.replace("/");
+        if (user) router.replace("/dashboard");
       })
       .finally(() => setChecked(true));
   }, [router]);
@@ -25,7 +26,14 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  return <div className="auth-layout">{children}</div>;
+  return (
+    <div className="auth-layout">
+      {children}
+      <div className="w-full max-w-lg">
+        <Footer />
+      </div>
+    </div>
+  );
 };
 
 export default AuthLayout;

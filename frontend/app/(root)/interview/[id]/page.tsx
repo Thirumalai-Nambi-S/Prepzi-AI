@@ -19,7 +19,7 @@ const Page = () => {
   useEffect(() => {
     apiGetInterviewById(id)
       .then(({ interview }) => setInterview(interview))
-      .catch(() => router.replace("/"))
+      .catch(() => router.replace("/dashboard"))
       .finally(() => setLoading(false));
   }, [id, router]);
 
