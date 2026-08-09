@@ -25,4 +25,4 @@ def health():
 
 @app.get("/")
 def home():
-    return {"message": "Prepzi AI API running 🚀"}
+    return {"message": "Prepzi AI API running successfully!"}
