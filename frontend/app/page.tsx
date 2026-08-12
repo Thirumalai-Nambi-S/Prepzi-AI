@@ -88,7 +88,7 @@ const LandingPage = () => {
     <div className="flex flex-col min-h-screen">
       {/* ---------- NAV ---------- */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-dark-100/80 border-b border-light-600/10">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 sm:px-16 py-4">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between page-gutter py-4">
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="Prepzi-AI logo" width={34} height={34} className="rounded-full" />
             <h2 className="text-primary-200 text-xl">Prepzi-AI</h2>
@@ -113,7 +113,7 @@ const LandingPage = () => {
 
       <main className="flex-1">
         {/* ---------- HERO ---------- */}
-        <section className="max-w-7xl mx-auto px-6 sm:px-16 pt-16 sm:pt-24 pb-12 flex flex-col items-center text-center gap-6">
+        <section className="max-w-7xl mx-auto page-gutter pt-16 sm:pt-24 pb-12 flex flex-col items-center text-center gap-6">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full bg-dark-200 px-4 py-1.5 text-xs sm:text-sm font-medium text-primary-200 shadow-sm">
               <Sparkles className="size-3.5" />
@@ -196,7 +196,7 @@ const LandingPage = () => {
         </section>
 
         {/* ---------- HOW IT WORKS ---------- */}
-        <section id="how-it-works" className="max-w-7xl mx-auto px-6 sm:px-16 py-16 sm:py-24">
+        <section id="how-it-works" className="max-w-7xl mx-auto page-gutter py-16 sm:py-24">
           <Reveal>
             <h2 className="text-3xl sm:text-4xl font-bold text-center">How your interview works</h2>
           </Reveal>
@@ -222,7 +222,7 @@ const LandingPage = () => {
         </section>
 
         {/* ---------- FEATURES ---------- */}
-        <section id="features" className="max-w-7xl mx-auto px-6 sm:px-16 py-16 sm:py-24">
+        <section id="features" className="max-w-7xl mx-auto page-gutter py-16 sm:py-24">
           <Reveal>
             <h2 className="text-3xl sm:text-4xl font-bold text-center">Why students choose Prepzi-AI</h2>
           </Reveal>
@@ -245,7 +245,7 @@ const LandingPage = () => {
         </section>
 
         {/* ---------- FINAL CTA ---------- */}
-        <section className="max-w-7xl mx-auto px-6 sm:px-16 pb-20">
+        <section className="max-w-7xl mx-auto page-gutter pb-20">
           <Reveal>
             <div className="card-cta">
               <div className="flex flex-col gap-4 max-w-lg">
@@ -265,10 +265,10 @@ const LandingPage = () => {
         </section>
       </main>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-16 w-full flex justify-center">
+      <div className="max-w-7xl mx-auto page-gutter w-full flex justify-center">
         <DateTimeClock />
       </div>
-      <div className="max-w-7xl mx-auto px-6 sm:px-16 w-full">
+      <div className="max-w-7xl mx-auto page-gutter w-full">
         <Footer />
       </div>
     </div>

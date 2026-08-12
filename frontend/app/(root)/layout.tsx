@@ -39,7 +39,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
     <UserProvider user={user}>
       <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-40 backdrop-blur-md bg-dark-100/80 border-b border-light-600/10 shadow-sm">
-          <nav className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-6 sm:px-16 py-4">
+          <nav className="page-gutter max-w-7xl mx-auto flex items-center justify-between gap-4 py-4">
             <a href="/dashboard" className="flex items-center gap-2 shrink-0">
               <img src="/logo.png" alt="Prepzi-AI logo" width={38} height={38} className="rounded-full" />
               <h2 className="text-primary-200 max-sm:hidden">Prepzi-AI</h2>
@@ -54,7 +54,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
 
         <div className="root-layout flex-1">{children}</div>
 
-        <div className="max-w-7xl mx-auto px-6 sm:px-16 w-full">
+        <div className="page-gutter max-w-7xl mx-auto w-full">
           <Footer />
         </div>
       </div>

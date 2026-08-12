@@ -45,7 +45,7 @@ const InterviewSection = ({ title, interviews, emptyMessage }: InterviewSectionP
       ) : (
         <div className={expanded ? "interviews-section" : "interviews-row"}>
           {visibleInterviews.map((interview, i) => (
-            <Reveal key={interview.id} delay={Math.min(i, 6) * 70}>
+            <Reveal key={interview.id} delay={Math.min(i, 6) * 70} className="shrink-0 w-[360px] max-sm:w-full">
               <InterviewCard {...interview} feedback={interview.feedback} />
             </Reveal>
           ))}

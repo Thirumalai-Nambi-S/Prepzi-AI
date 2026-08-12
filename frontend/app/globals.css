@@ -39,6 +39,12 @@
 }
 
 :root {
+  /* Fluid side padding used by the header, footer, and every page
+     container. Scales continuously with viewport width instead of
+     jumping at a single breakpoint, so gutters look right on every
+     device from a 320px phone up to a 4K monitor. */
+  --page-gutter: clamp(1rem, 4.5vw, 4rem);
+
   /* App design tokens - default to the dark palette (the app's original
      look), overridden below by .light for light mode. */
   --app-primary-100: #dddfff;
@@ -377,7 +383,9 @@
   }
 
   .section-feedback {
-    @apply flex flex-col gap-8 max-w-5xl mx-auto max-sm:px-4 text-lg leading-7;
+    @apply flex flex-col gap-8 max-w-5xl mx-auto text-lg leading-7;
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
 
     .buttons {
       @apply flex w-full justify-evenly gap-4 max-sm:flex-col max-sm:items-center ;
@@ -385,11 +393,28 @@
   }
 
   .auth-layout {
-    @apply flex flex-col items-center justify-center mx-auto max-w-7xl min-h-screen max-sm:px-4 max-sm:py-8;
+    @apply flex flex-col items-center justify-center mx-auto w-full max-w-7xl min-h-screen max-sm:py-8;
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
   }
 
+  /* w-full is required here: this container sits inside a flex-column
+     parent (see (root)/layout.tsx) and also has mx-auto for centering on
+     screens wider than max-w-7xl. Per the flexbox spec, auto margins on a
+     flex item disable cross-axis stretch, so without an explicit width the
+     box would shrink-to-fit its content instead of filling the viewport -
+     harmless with one narrow child, but it silently grows past the screen
+     edge as soon as content (e.g. two side-by-side cards) needs more room
+     than the viewport, causing an invisible mobile overflow bug. */
   .root-layout {
-    @apply flex mx-auto max-w-7xl flex-col gap-12 my-8 px-16 max-sm:px-4 max-sm:my-6;
+    @apply flex mx-auto w-full max-w-7xl flex-col gap-12 my-8 max-sm:my-6;
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  .page-gutter {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
   }
 
   .card-cta {
@@ -599,4 +624,138 @@
 
 @utility animate-sand-fall {
   animation: sand-fall 0.45s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   RESPONSIVE SYSTEM — full device-size coverage
+   --------------------------------------------------------------------------
+   Two layers work together:
+   1. Fluid rules (clamp/vw based) so type and spacing scale continuously
+      at EVERY width, not just at the breakpoints below.
+   2. Explicit tiered media queries for structural layout changes (column
+      counts, hiding decorative elements, etc.) that can't be done with
+      fluid scaling alone. Tiers roughly match real device classes:
+
+        - ≤380px    extra-small phones (iPhone SE, small Android)
+        - 381–480px  standard phones
+        - 481–640px  large phones / phablets, landscape small phones
+        - 641–767px  small tablets (portrait)
+        - 768–1023px tablets (iPad, Android tablets)
+        - 1024–1279px small laptops / iPad landscape
+        - 1280–1535px desktops (default design target)
+        - ≥1536px    large/4K monitors
+   ========================================================================== */
+
+/* Safety net: nothing on the page should ever be able to force horizontal
+   scroll, regardless of a component-level sizing bug. */
+html {
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+  height: auto;
+  /* Flex/grid items default to a content-based automatic minimum size,
+     which for a replaced element like <img width height> equals its
+     intrinsic pixel size - silently overriding max-width:100% and letting
+     it force its flex/grid container wider than the viewport. min-width:0
+     is the standard fix. */
+  min-width: 0;
+}
+
+/* Fluid heading scale - grows smoothly with viewport width between a
+   comfortable phone size and the original desktop size. */
+h2 {
+  font-size: clamp(1.375rem, 1.05rem + 1.3vw, 1.875rem);
+}
+h3 {
+  font-size: clamp(1.15rem, 0.95rem + 0.85vw, 1.5rem);
+}
+.card-cta h2 {
+  font-size: clamp(1.5rem, 1rem + 2.2vw, 2.5rem);
+}
+.interview-text {
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.125rem);
+}
+
+/* ---------- Tier: extra-small phones (≤380px) ---------- */
+@media (max-width: 380px) {
+  .card-cta {
+    padding: 1.25rem 1rem;
+  }
+  .btn-primary,
+  .btn-secondary,
+  .form .btn {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  .card-interview {
+    padding: 1.1rem;
+  }
+}
+
+/* ---------- Tier: standard phones (381–480px) ---------- */
+@media (min-width: 381px) and (max-width: 480px) {
+  .card-cta {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+/* ---------- Tier: small tablets, portrait (641–767px) ---------- */
+@media (min-width: 641px) and (max-width: 767px) {
+  .interviews-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .interviews-section > * {
+    width: 100%;
+  }
+  .interviews-section .surface-card {
+    width: 100%;
+  }
+}
+
+/* ---------- Tier: tablets (768–1023px) ---------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .interviews-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .interviews-section > * {
+    width: 100%;
+  }
+  .interviews-section .surface-card {
+    width: 100%;
+  }
+}
+
+/* ---------- Tier: small laptops / iPad landscape (1024–1279px) ---------- */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .interviews-section {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .interviews-section > * {
+    width: 100%;
+  }
+  .interviews-section .surface-card {
+    width: 100%;
+  }
+}
+
+/* ---------- Tier: large / 4K monitors (≥1536px) ---------- */
+@media (min-width: 1536px) {
+  .root-layout,
+  .auth-layout {
+    max-width: 1400px;
+  }
 }
