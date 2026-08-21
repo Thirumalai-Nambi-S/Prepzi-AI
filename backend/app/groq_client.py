@@ -21,6 +21,48 @@ def get_client() -> Groq:
     return _client
 
 
+# Known-good models to fall back to, in order, if the configured model is
+# ever unavailable (deprecated, decommissioned, wrong access tier, a typo in
+# .env, etc). This is what actually keeps question/feedback generation
+# working even if Groq changes its lineup again in the future - a single bad
+# model string no longer takes down the whole app.
+_FALLBACK_MODELS = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "llama-3.1-8b-instant",
+]
+
+_MODEL_ISSUE_MARKERS = (
+    "model_not_found",
+    "does not exist",
+    "decommissioned",
+    "model_decommissioned",
+    "invalid_request_error",
+)
+
+
+def _create_completion(**kwargs):
+    """Wraps `client.chat.completions.create`, trying the configured
+    GROQ_MODEL first and automatically retrying with known-good fallback
+    models if the configured one turns out to be unavailable. Any other kind
+    of error (rate limit, network, bad prompt, etc.) is raised immediately
+    without wasting retries on a problem that swapping models won't fix."""
+    client = get_client()
+    candidates = [settings.GROQ_MODEL] + [m for m in _FALLBACK_MODELS if m != settings.GROQ_MODEL]
+
+    last_error: Exception | None = None
+    for model in candidates:
+        try:
+            return client.chat.completions.create(model=model, **kwargs)
+        except Exception as e:
+            message = str(e).lower()
+            last_error = e
+            if any(marker in message for marker in _MODEL_ISSUE_MARKERS):
+                continue  # try the next candidate model
+            raise
+    raise last_error  # every candidate failed for model-availability reasons
+
+
 def _extract_json(text: str):
     """Groq sometimes wraps JSON in prose or code fences - pull the JSON out."""
     text = text.strip()
@@ -51,9 +93,7 @@ The questions are going to be read out loud by a voice assistant, so do not use 
 Return ONLY a raw JSON array of strings, formatted exactly like this, and nothing else:
 ["Question 1", "Question 2", "Question 3"]
 """
-    client = get_client()
-    completion = client.chat.completions.create(
-        model=settings.GROQ_MODEL,
+    completion = _create_completion(
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
@@ -95,9 +135,7 @@ Return ONLY a raw JSON array, formatted exactly like this and nothing else:
 Each question must have exactly 4 options, with plausible distractors (not obviously wrong). correctIndex is the
 0-based index of the correct option. Do not use "/" or "*" or other symbols that would break text-to-speech if read aloud.
 """
-    client = get_client()
-    completion = client.chat.completions.create(
-        model=settings.GROQ_MODEL,
+    completion = _create_completion(
         messages=[{"role": "user", "content": prompt}],
         temperature=0.8,
     )
@@ -195,10 +233,8 @@ Write what you would say next, out loud, right now. It should:
 - No stage directions, no quotation marks, no labels like "Interviewer:" - return ONLY the exact words to be spoken aloud.
 - Do not use "/" or "*" or other symbols that break voice synthesis.
 """
-    client = get_client()
     try:
-        completion = client.chat.completions.create(
-            model=settings.GROQ_MODEL,
+        completion = _create_completion(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8,
             max_tokens=80,
@@ -287,9 +323,7 @@ Return ONLY raw JSON, with no extra prose, no markdown fences, in EXACTLY this s
   "finalAssessment": string
 }}
 """
-    client = get_client()
-    completion = client.chat.completions.create(
-        model=settings.GROQ_MODEL,
+    completion = _create_completion(
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4,
         max_tokens=3000,

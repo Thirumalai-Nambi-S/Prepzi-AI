@@ -42,6 +42,8 @@ export function useVoiceAgent() {
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stoppedRef = useRef(false);
+  const interruptedRef = useRef(false);
+  const pendingFinishRef = useRef<(() => void) | null>(null);
   const serverTtsAvailableRef = useRef(true); // flip false after first failure, so we don't retry a dead endpoint every turn
 
   useEffect(() => {
@@ -82,21 +84,25 @@ export function useVoiceAgent() {
 
   const speakOneBrowserUtterance = (text: string): Promise<void> => {
     return new Promise((resolve) => {
-      if (typeof window === "undefined" || !window.speechSynthesis || stoppedRef.current) {
+      if (typeof window === "undefined" || !window.speechSynthesis || stoppedRef.current || interruptedRef.current) {
         resolve();
         return;
       }
       const utterance = new SpeechSynthesisUtterance(text);
       const voice = pickBestBrowserVoice();
       if (voice) utterance.voice = voice;
-      utterance.rate = 0.98;
-      utterance.pitch = 1.02;
+      // Tiny natural variance so consecutive lines don't sound like the exact
+      // same robotic cadence every single time.
+      utterance.rate = 0.96 + Math.random() * 0.08;
+      utterance.pitch = 0.98 + Math.random() * 0.08;
       let settled = false;
       const finish = () => {
         if (settled) return;
         settled = true;
+        if (pendingFinishRef.current === finish) pendingFinishRef.current = null;
         resolve();
       };
+      pendingFinishRef.current = finish;
       utterance.onend = finish;
       utterance.onerror = finish;
       window.speechSynthesis.speak(utterance);
@@ -117,7 +123,7 @@ export function useVoiceAgent() {
 
     try {
       for (const chunk of splitIntoChunks(text)) {
-        if (stoppedRef.current) break;
+        if (stoppedRef.current || interruptedRef.current) break;
         await speakOneBrowserUtterance(chunk);
       }
     } finally {
@@ -145,15 +151,28 @@ export function useVoiceAgent() {
         return false;
       }
       const blob = await res.blob();
-      if (blob.size === 0 || stoppedRef.current) return false;
+      if (blob.size === 0 || stoppedRef.current || interruptedRef.current) return false;
 
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audioRef.current = audio;
 
       await new Promise<void>((resolve, reject) => {
-        audio.onended = () => resolve();
-        audio.onerror = () => reject(new Error("audio playback failed"));
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          if (pendingFinishRef.current === finish) pendingFinishRef.current = null;
+          resolve();
+        };
+        pendingFinishRef.current = finish;
+        audio.onended = finish;
+        audio.onerror = () => {
+          if (settled) return;
+          settled = true;
+          if (pendingFinishRef.current === finish) pendingFinishRef.current = null;
+          reject(new Error("audio playback failed"));
+        };
         audio.play().catch(reject);
       });
 
@@ -174,11 +193,44 @@ export function useVoiceAgent() {
     setIsSpeaking(true);
     try {
       const playedByServer = await speakViaServer(text, mode);
-      if (playedByServer || stoppedRef.current) return;
+      if (playedByServer || stoppedRef.current || interruptedRef.current) return;
       await speakViaBrowser(text);
     } finally {
       setIsSpeaking(false);
     }
+  }, []);
+
+  /** Immediately cuts off whatever the AI is currently saying (server audio
+   * or browser speechSynthesis) so the candidate can jump straight to
+   * answering, without waiting for the AI to finish the line.
+   *
+   * This is intentionally a MANUAL interrupt (triggered by a button in the
+   * UI) rather than automatic microphone-based detection. An automatic
+   * "listen for the candidate's voice while the AI is still talking"
+   * approach sounds nice in theory, but the Web Speech API gives us no way
+   * to apply real echo cancellation - so on any setup without headphones,
+   * the mic simply hears the AI's own voice coming out of the speakers and
+   * mistakes it for the candidate interrupting, causing the AI to cut
+   * itself off almost immediately on every single question. A manual
+   * button is far less "magic" but it's the reliable version of this
+   * feature - it never fires by accident and never eats the candidate's
+   * turn to answer. */
+  const interrupt = useCallback(() => {
+    interruptedRef.current = true;
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    // Unblock whatever `speak()` promise is currently awaiting playback.
+    if (pendingFinishRef.current) {
+      const finish = pendingFinishRef.current;
+      pendingFinishRef.current = null;
+      finish();
+    }
+    setIsSpeaking(false);
   }, []);
 
   /**
@@ -227,22 +279,39 @@ export function useVoiceAgent() {
       recognition.onerror = () => finish("");
       recognition.onend = () => finish("");
 
-      try {
-        recognition.start();
-      } catch {
-        finish("");
-      }
+      const start = (retriesLeft: number) => {
+        try {
+          recognition.start();
+        } catch {
+          // Most likely cause: the previous recognition session hadn't
+          // fully released the mic yet. Give the browser a brief moment and
+          // try again instead of silently giving up and skipping the
+          // candidate's turn.
+          if (retriesLeft > 0 && !settled) {
+            setTimeout(() => start(retriesLeft - 1), 250);
+          } else {
+            finish("");
+          }
+        }
+      };
+      start(2);
     });
   }, []);
 
   const stop = useCallback(() => {
     stoppedRef.current = true;
+    interruptedRef.current = true;
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
+    }
+    if (pendingFinishRef.current) {
+      const finish = pendingFinishRef.current;
+      pendingFinishRef.current = null;
+      finish();
     }
     if (recognitionRef.current) {
       try {
@@ -257,8 +326,18 @@ export function useVoiceAgent() {
 
   const reset = useCallback(() => {
     stoppedRef.current = false;
+    interruptedRef.current = false;
     serverTtsAvailableRef.current = true; // give the server another chance on a fresh call
   }, []);
 
-  return { speak, listen, stop, reset, isSpeaking, isListening, isSupported };
+  return {
+    speak,
+    interrupt,
+    listen,
+    stop,
+    reset,
+    isSpeaking,
+    isListening,
+    isSupported,
+  };
 }

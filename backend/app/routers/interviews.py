@@ -171,7 +171,7 @@ def create_feedback(interview_id: str, body: CreateFeedbackRequest):
         raise HTTPException(status_code=400, detail="Empty transcript, nothing to grade")
 
     try:
-        feedback_data = generate_feedback([m.model_dump() for m in body.transcript])
+        feedback_data = generate_feedback([m.dict() for m in body.transcript])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Feedback generation failed: {e}")
 
@@ -211,12 +211,12 @@ def create_full_feedback(interview_id: str, body: FullFeedbackRequest):
 
     try:
         tech_feedback = (
-            generate_feedback([m.model_dump() for m in body.technicalTranscript], round_context="technical")
+            generate_feedback([m.dict() for m in body.technicalTranscript], round_context="technical")
             if body.technicalTranscript
             else None
         )
         beh_feedback = (
-            generate_feedback([m.model_dump() for m in body.behavioralTranscript], round_context="behavioral")
+            generate_feedback([m.dict() for m in body.behavioralTranscript], round_context="behavioral")
             if body.behavioralTranscript
             else None
         )

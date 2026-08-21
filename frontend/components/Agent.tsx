@@ -54,7 +54,7 @@ const parseSpokenNumber = (text: string): number | null => {
 
 const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "interview", onRoundComplete }: AgentProps) => {
   const router = useRouter();
-  const { speak, listen, stop, reset, isSpeaking, isSupported } = useVoiceAgent();
+  const { speak, interrupt, listen, stop, reset, isSpeaking, isSupported } = useVoiceAgent();
 
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
@@ -331,6 +331,18 @@ const Agent = ({ userName, userId, interviewId, type, questions, personaMode = "
       </div>
 
       {statusText && <p className="text-center mt-2 text-sm opacity-70">{statusText}</p>}
+
+      {isSpeaking && callStatus === CallStatus.ACTIVE && (
+        <div className="w-full flex justify-center mt-2">
+          <button
+            type="button"
+            onClick={interrupt}
+            className="text-xs px-3 py-1.5 rounded-full border border-primary-200/40 text-primary-200 hover:bg-primary-200/10 transition-colors"
+          >
+            Already know your answer? Tap to jump in
+          </button>
+        </div>
+      )}
 
       {messages.length > 0 && (
         <div className="transcript-border">
